@@ -9,44 +9,98 @@ namespace TestGround
 {
     public static class Program
     {
+        public enum States { INIT, CHOOSE_ACTION, IDLE, PROCESS_ACTION }
+
         public static Stopwatch battleWatch = new Stopwatch();
+        public static bool isDead = false;
+        public static long actionTimeStamp;
 
         public static void Main()
         {
-            battleWatch.Start();
+            States currState = States.INIT;
 
-            bool isValid;
+            battleWatch.Start();
 
             do
             {
-                isValid = false;
-                ConsoleKeyInfo input;
-                input = Console.ReadKey(true);
-
-                switch(input.Key)
+                switch(currState)
                 {
-                    case ConsoleKey.A:
+                    case States.INIT:
                         {
-                            Console.WriteLine($"Time elapsed in ms : {battleWatch.ElapsedMilliseconds}");
+                            Console.WriteLine("Currently in the INIT state");
+                            if (battleWatch.ElapsedMilliseconds >= 5000)
+                                currState = States.CHOOSE_ACTION;
                             break;
                         }
 
-                    case ConsoleKey.Q:
+                    case States.CHOOSE_ACTION:
                         {
-                            isValid = true;
+                            Console.WriteLine("Currently in the CHOOSE_ACTION state");
+                            ParseCommand();
+                            currState = States.IDLE;
+                            break;
+                        }
+
+                    case States.IDLE:
+                        {
+                            Console.WriteLine($"Wait a bit, currently {battleWatch.ElapsedMilliseconds} / {actionTimeStamp}");
+                            if (battleWatch.ElapsedMilliseconds >= actionTimeStamp)
+                                currState = States.PROCESS_ACTION;
+                            break;
+                        }
+
+                    case States.PROCESS_ACTION:
+                        {
+                            Console.WriteLine($"You cast a spell...... AND IT FIZZLES... OMG!!!");
+                            currState = States.INIT;
+                            break;
+                        }
+
+                    default:
+                        {
                             break;
                         }
                 }
-
-            } while (!isValid);
+            } while (!isDead);
 
             Console.WriteLine("Press any key to exit");
             Console.ReadLine();
         }
 
-        private static void TimerCallback(object o)
+        private static void ParseCommand()
         {
+            bool isValid = true;
 
+            do
+            {
+                isValid = true;
+                ConsoleKeyInfo keyInfo;
+                keyInfo = Console.ReadKey(true);
+
+                switch (keyInfo.Key)
+                {
+                    case ConsoleKey.A:
+                        {
+                            Console.WriteLine($"Hello from the CHOOSE_ACTION state : {battleWatch.ElapsedMilliseconds}");
+
+                            isValid = false;
+                            break;
+                        }
+
+                    case ConsoleKey.S:
+                        {
+                            Console.WriteLine($"You have decided to use a spell, it will take effect at : {battleWatch.ElapsedMilliseconds + 7500}");
+                            actionTimeStamp = battleWatch.ElapsedMilliseconds + 7500;
+                            isValid = true;
+                            break;
+                        }
+
+                    default:
+                        {
+                            break;
+                        }
+                }
+            } while (!isValid);
         }
     }
 }
